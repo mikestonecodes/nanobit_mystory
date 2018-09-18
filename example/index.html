@@ -1,0 +1,286 @@
+<html>
+<script src="spine-canvas.js"></script>
+<script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
+<style>
+	* { margin: 0; padding: 0; }
+	body, html { height: 100% }
+	canvas { position: absolute; width: 100% ;height: 100%; }
+</style>
+<body>
+<canvas id="canvas"></canvas>
+</body>
+<script>
+
+var lastFrameTime = Date.now() / 1000;
+var canvas, context;
+var assetManager;
+var skeleton, state, bounds;
+var skeletonRenderer;
+
+var skelName = "Ivy_2";
+var animName="1_start";
+var option_1="Ask mom for advice";
+var option_2="Call your boyfriend"
+var display_text=true;
+function init () {
+	canvas = document.getElementById("canvas");
+	canvas.width = window.innerWidth;
+	canvas.height = window.innerHeight;
+	context = canvas.getContext("2d");
+
+	skeletonRenderer = new spine.canvas.SkeletonRenderer(context);
+	// enable debug rendering
+	skeletonRenderer.debugRendering = false;
+	// enable the triangle renderer, supports meshes, but may produce artifacts in some browsers
+	skeletonRenderer.triangleRendering = false;
+
+	assetManager = new spine.canvas.AssetManager();
+
+	assetManager.loadText("assets/" + skelName + ".json");
+	assetManager.loadText("assets/" + skelName.replace("-pro", "").replace("-ess", "") + ".atlas");
+	assetManager.loadTexture("assets/" + skelName.replace("-pro", "").replace("-ess", "") + ".png");
+
+	requestAnimationFrame(load);
+}
+
+function load () {
+	if (assetManager.isLoadingComplete()) {
+		var data = loadSkeleton(skelName, animName, "default");
+		skeleton = data.skeleton;
+		state = data.state;
+		bounds = data.bounds;
+		requestAnimationFrame(render);
+	} else {
+		requestAnimationFrame(load);
+	}
+}
+function cta(){
+
+}
+function loadSkeleton (name, initialAnimation, skin) {
+	if (skin === undefined) skin = "default";
+
+	// Load the texture atlas using name.atlas and name.png from the AssetManager.
+	// The function passed to TextureAtlas is used to resolve relative paths.
+	atlas = new spine.TextureAtlas(assetManager.get("assets/" + name.replace("-pro", "").replace("-ess", "") + ".atlas"), function(path) {
+		return assetManager.get("assets/" + path);
+	});
+
+	// Create a AtlasAttachmentLoader, which is specific to the WebGL backend.
+	atlasLoader = new spine.AtlasAttachmentLoader(atlas);
+
+	// Create a SkeletonJson instance for parsing the .json file.
+	var skeletonJson = new spine.SkeletonJson(atlasLoader);
+
+	// Set the scale to apply during parsing, parse the file, and create a new skeleton.
+	var skeletonData = skeletonJson.readSkeletonData(assetManager.get("assets/" + name + ".json"));
+	var skeleton = new spine.Skeleton(skeletonData);
+	skeleton.flipY = true;
+	var bounds = calculateBounds(skeleton);
+	skeleton.setSkinByName(skin);
+
+	// Create an AnimationState, and set the initial animation in looping mode.
+	var animationState = new spine.AnimationState(new spine.AnimationStateData(skeleton.data));
+	animationState.setAnimation(0, animName, true);
+	animationState.addListener({
+		event: function(trackIndex, event) {
+
+			// console.log("Event on track " + trackIndex + ": " + JSON.stringify(event));
+		},
+		complete: function(trackIndex, loopCount) {
+			if(animName=="a_call"){
+				animName="a_wait"
+				animationState.setAnimation(0, animName, false);
+			}
+			if(animName=="a_wait"){
+				animName="a_question"
+				animationState.setAnimation(0, animName, false);
+			}
+			if(animName=="a_question"){
+				animName="a_wait_loop"
+				animationState.setAnimation(0, "a_wait", true);
+				 display_text=true;
+				 option_1="Tell her everything";
+				 option_2="Don't disappoint her"
+			}
+
+			if(animName=="aa_tell"){
+				animName="aa_tell_loop"
+				animationState.setAnimation(0, animName, true);
+			}
+
+			if(animName=="b_phone_dial"){
+				animName="b_phone_loop"
+				animationState.setAnimation(0, animName, true);
+				display_text=true;
+				option_1="Tell him he's a father";
+				option_2="Ask him if you can meet up"
+			}
+
+			if(animName=="ba_hang_up"){
+				animName="ba_end"
+				animationState.setAnimation(0, animName, true);
+			}
+			if(animName=="bb_phone_cry_start"){
+				animName="bb_phone_cry"
+				animationState.setAnimation(0, animName, true);
+			}
+
+			if(animName=="aa_run_out"){
+ 			 animName="aa_return"
+ 			 animationState.setAnimation(0, animName, false);
+ 		 }
+
+
+		 if(animName=="aa_return"){
+			 cta();
+			}
+
+			if(animName=="ab_question"){
+				animName="ab_wait"
+				animationState.setAnimation(0, "a_wait", false);
+			}
+
+			if(animName=="ab_sad_start"){
+ 			 animName="ab_sad_start"
+ 			 animationState.setAnimation(0, "ab_sad", true);
+ 		 }
+
+			// console.log("Animation on track " + trackIndex + " completed, loop count: " + loopCount);
+		},
+		start: function(trackIndex) {
+			// console.log("Animation on track " + trackIndex + " started");
+		},
+		end: function(trackIndex) {
+			// console.log("Animation on track " + trackIndex + " ended");
+		}
+	})
+	canvas.addEventListener('click', (evt)=>{
+		   display_text=false;
+		 if(animName=="1_start"){
+			 if(evt.clientY/canvas.height < 0.833827){
+				 animName="a_call"
+				 animationState.setAnimation(0, animName, false);
+
+			 }else {
+				 animName="b_phone_dial"
+				 animationState.setAnimation(0, animName, false);
+
+			 }
+		}
+
+     if(animName=="b_phone_loop"){
+			 	 if(evt.clientY/canvas.height < 0.833827){
+					 animName="ba_hang_up"
+					 animationState.setAnimation(0, animName, false);
+		 	} else {
+						animName="bb_phone_cry_start"
+						animationState.setAnimation(0, animName, false);
+			}
+		 }
+		 if(animName=="aa_tell_loop"){
+			 animName="aa_run_out"
+			 animationState.setAnimation(0, animName, true);
+		 }
+		 if(animName=="a_wait_loop"){
+			 if(evt.clientY/canvas.height < 0.833827){
+				 animName="aa_tell"
+				 animationState.setAnimation(0, "aa_tell", true);
+				} else {
+					animName="ab_question"
+					animationState.setAnimation(0, "a_question", true);
+			 }
+		 }
+
+		 if(animName=="ab_wait"){
+			 animName="ab_sad_start"
+			 animationState.setAnimation(0, animName, true);
+		 }
+
+		 if(animName=="ba_end" || animName=="bb_phone_cry"|| animName=="ab_sad"){
+		  	cta();
+		 }
+	}, false);
+
+	// Pack everything up and return to caller.
+	return { skeleton: skeleton, state: animationState, bounds: bounds };
+}
+
+function calculateBounds(skeleton) {
+	var data = skeleton.data;
+	skeleton.setToSetupPose();
+	skeleton.updateWorldTransform();
+	var offset = new spine.Vector2();
+	var size = new spine.Vector2();
+	skeleton.getBounds(offset, size, []);
+	return { offset: offset, size: size };
+}
+
+function render () {
+	var now = Date.now() / 1000;
+	var delta = now - lastFrameTime;
+	lastFrameTime = now;
+
+	resize();
+
+	context.save();
+	context.setTransform(1, 0, 0, 1, 0, 0);
+	context.fillStyle = "#cccccc";
+	context.fillRect(0, 0, canvas.width, canvas.height);
+	context.restore();
+
+	context.save();
+
+	state.update(delta);
+	state.apply(skeleton);
+	skeleton.updateWorldTransform();
+	skeletonRenderer.draw(skeleton);
+	context.restore();
+	context.font = "200px Arial";
+	if(display_text){
+		context.fillText(option_1,canvas.width / 2,-400);
+		context.fillText(option_2,canvas.width / 2,0);
+	}
+//	context.strokeStyle = "green";
+//	context.beginPath();
+//	context.moveTo(-1000, 0);
+//	context.lineTo(1000, 0);
+//	context.moveTo(0, -1000);
+//	context.lineTo(0, 1000);
+//	context.stroke();
+
+	requestAnimationFrame(render);
+}
+
+function resize () {
+	var w = canvas.clientWidth;
+	var h = canvas.clientHeight;
+	if (canvas.width != w || canvas.height != h) {
+		canvas.width = w;
+		canvas.height = h;
+	}
+
+	// magic
+	var centerX = bounds.offset.x + bounds.size.x / 2;
+	var centerY = bounds.offset.y + bounds.size.y / 2;
+	var scaleX = bounds.size.x / canvas.width;
+	var scaleY = bounds.size.y / canvas.height;
+	var scale = Math.max(scaleX, scaleY) * 1.2;
+	if (scale < 1) scale = 1;
+	var width = canvas.width * scale;
+	var height = canvas.height * scale;
+
+	context.setTransform(1, 0, 0, 1, 0, 0);
+	context.scale(1 / scale, 1 / scale);
+	context.translate(-centerX, -centerY);
+	context.translate(width / 2, height / 2);
+
+
+}
+
+(function() {
+	init();
+}());
+
+</script>
+</html>
