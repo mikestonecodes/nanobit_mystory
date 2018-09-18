@@ -126,13 +126,10 @@ function loadSkeleton (name, initialAnimation, skin) {
 				animationState.setAnimation(0, animName, true);
 			}
 
-			if(animName=="aa_run_out"){
- 			 animName="aa_return"
- 			 animationState.setAnimation(0, animName, false);
- 		 }
+		/////////
 
 
-		 if(animName=="aa_return"){
+		 if(animName=="aa_run_out"){
 			 cta();
 			}
 
@@ -180,12 +177,12 @@ function loadSkeleton (name, initialAnimation, skin) {
 		 }
 		 if(animName=="aa_tell_loop"){
 			 animName="aa_run_out"
-			 animationState.setAnimation(0, animName, true);
+			 animationState.setAnimation(0, animName, false);
 		 }
 		 if(animName=="a_wait_loop"){
 			 if(evt.clientY/canvas.height < 0.833827){
 				 animName="aa_tell"
-				 animationState.setAnimation(0, "aa_tell", true);
+				 animationState.setAnimation(0, "aa_tell", false);
 				} else {
 					animName="ab_question"
 					animationState.setAnimation(0, "a_question", true);
@@ -194,7 +191,7 @@ function loadSkeleton (name, initialAnimation, skin) {
 
 		 if(animName=="ab_wait"){
 			 animName="ab_sad_start"
-			 animationState.setAnimation(0, animName, true);
+			 animationState.setAnimation(0, animName, false);
 		 }
 
 		 if(animName=="ba_end" || animName=="bb_phone_cry"|| animName=="ab_sad"){
