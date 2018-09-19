@@ -9,12 +9,12 @@
 	canvas { position: absolute; width: 100% ;height: 100%;
     background-image: url("assets/bg_portrait.jpg");
     background-repeat: no-repeat;
-
+        background-size: 414 736px;
        background-position: center;
   }
 	.option{
 
-		height:50px;
+		height:60px;
     position: relative;
     top:40px;
     background-position: center;
@@ -22,7 +22,7 @@
 		 background-repeat: no-repeat;
 			background-size: contain;
 			color:white;
-      padding-top: 20px;
+      line-height: 50px;
 			font-size: 20px;
 
 	}
@@ -31,7 +31,7 @@
 
 		width:100%;
 
-    top:50%;
+    top:45%;
   line-height: 180px;
 	   height: 200px;
     background-position: center;
@@ -231,8 +231,9 @@ function loadSkeleton (name, initialAnimation, skin) {
 	})
 	document.addEventListener('click', (evt)=>{
 		   display_text=false;
+       console.log(evt.clientY/canvas.height )
 		 if(animName=="1_start"){
-			 if(evt.clientY/canvas.height < 0.833827){
+			 if(evt.clientY/canvas.height < 0.88){
 				 animName="a_call"
 				 animationState.setAnimation(0, animName, false);
 
@@ -244,7 +245,7 @@ function loadSkeleton (name, initialAnimation, skin) {
 		}
 
      if(animName=="b_phone_loop"){
-			 	 if(evt.clientY/canvas.height < 0.833827){
+			 	 if(evt.clientY/canvas.height < 0.88){
 					 animName="ba_hang_up"
 					 animationState.setAnimation(0, animName, false);
 		 	} else {
@@ -257,7 +258,7 @@ function loadSkeleton (name, initialAnimation, skin) {
 			 animationState.setAnimation(0, animName, false);
 		 }
 		 if(animName=="a_wait_loop"){
-			 if(evt.clientY/canvas.height < 0.833827){
+			 if(evt.clientY/canvas.height < 0.88){
 				 animName="aa_tell"
 				 animationState.setAnimation(0, "aa_tell", false);
 				} else {
