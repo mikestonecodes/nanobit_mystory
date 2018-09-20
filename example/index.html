@@ -26,18 +26,40 @@
 			font-size: 20px;
 
 	}
+    .flip::before {
+     transform: scaleX(-1);
+    }
+  	.textbox::before{
+      background-position: left center ;
+      background-image: url("assets/textbox2.png");
+      background-repeat: no-repeat;
+       background-size: contain;
+       content: "";
+       width:100%;
+        padding-left: 15px;
+        padding-right: 15px;
+        position: absolute;
+        order:2;
+        height: 228px;
+        display: flex;
+        z-index: -1;
+    }
 	.textbox {
+    order:1;
+  z-index: 999;
 		position: absolute;
-
-		width:100%;
-
+      flex-direction: row-reverse;
+		width:80%;
+    padding-left: 15px;
+    padding-right: 15px;
     top:45%;
-  line-height: 180px;
-	   height: 200px;
-    background-position: center;
-		background-image: url("assets/textbox2.png");
-		background-repeat: no-repeat;
-		 background-size: contain;
+    left:5%;
+    display: flex;
+    line-height: 24px;
+ align-items: center;
+ justify-content: center;
+
+
 		  text-align: center;
 
 		 font-size: 20px;
@@ -63,14 +85,14 @@
 <canvas id="canvas"></canvas>
 <div='uiWrapper'>
 <div  class="textbox"/>
-aewfefawef
+
 </div>
 <div class='optionWrapper'>
 
-<div class="option">
+<div class="option option1">
 	Ask mom for advice
 </div>
-<div class="option">
+<div class="option option2">
 		Call your boyfriend
 </div>
 </div>
@@ -116,7 +138,34 @@ function init () {
 
 
 }
+var mytim;
+function script(scripts)
+{
+    clearTimeout(mytim)
+  $('.textbox').html(scripts[0][0])
+  if(scripts[0][1] == 0){
+    $('.textbox').removeClass('flip')
+  }else if(scripts[0][1] == 1){
+    $('.textbox').addClass('flip')
+  }
+    scripts.splice(0,1);
 
+    clearTimeout(mytim)
+scripts.forEach( (script,i) => {
+
+
+
+    mytim = setTimeout(()=>{
+      if(script[1] == 0){
+        $('.textbox').removeClass('flip')
+      }else if(scripts[0][1] == 1) {
+        $('.textbox').addClass('flip')
+      }
+      $('.textbox').html(script[0])
+    } , 1100*(i+1))
+  })
+}
+script( [ ["Oh no! It's positive!",0], ["What am I going to do?",0] ] );
 function load () {
 	if (assetManager.isLoadingComplete()) {
 		var data = loadSkeleton(skelName, animName, "default");
@@ -202,7 +251,6 @@ function loadSkeleton (name, initialAnimation, skin) {
 				animationState.setAnimation(0, animName, true);
 			}
 
-		/////////
 
 
 		 if(animName=="aa_run_out"){
@@ -220,6 +268,15 @@ function loadSkeleton (name, initialAnimation, skin) {
  		 }
       $(".option1").html(option_1);
 			$(".option2").html(option_2);
+
+      if(display_text)
+      {
+        $('.option_1').show();
+          $('.option_2').show();
+      }else {
+        $('.option_1').hide();
+          $('.option_2').hide();
+      }
 			// console.log("Animation on track " + trackIndex + " completed, loop count: " + loopCount);
 		},
 		start: function(trackIndex) {
@@ -236,11 +293,13 @@ function loadSkeleton (name, initialAnimation, skin) {
 			 if(evt.clientY/canvas.height < 0.88){
 				 animName="a_call"
 				 animationState.setAnimation(0, animName, false);
+         script( [ ["MOOOM!",0], ["Yes, dear?",1],["Mom I have to tell you something!",0],["What does my princess want?",1] ] );
 
 			 }else {
 				 animName="b_phone_dial"
 				 animationState.setAnimation(0, animName, false);
-
+         script( [ [ "Mark I have to tell you something!",0],
+         ["Can I call you later, I'm in a middle of something?",1] ] );
 			 }
 		}
 
@@ -254,6 +313,7 @@ function loadSkeleton (name, initialAnimation, skin) {
 			}
 		 }
 		 if(animName=="aa_tell_loop"){
+       script( [ ["What?! What were you thinking?!",0], ["Wait! Veronica! We can still fix this!",1] ] );
 			 animName="aa_run_out"
 			 animationState.setAnimation(0, animName, false);
 		 }
@@ -262,6 +322,9 @@ function loadSkeleton (name, initialAnimation, skin) {
 				 animName="aa_tell"
 				 animationState.setAnimation(0, "aa_tell", false);
 				} else {
+          script( [ ["Mom can you please get me a glass of water?",0],
+          ["Anything for you my perfect child." ,1] ] );
+
 					animName="ab_question"
 					animationState.setAnimation(0, "a_question", true);
 			 }
@@ -269,6 +332,7 @@ function loadSkeleton (name, initialAnimation, skin) {
 
 		 if(animName=="ab_wait"){
 			 animName="ab_sad_start"
+         script(  [["What am I gonna do now?",0]] )
 			 animationState.setAnimation(0, animName, false);
 		 }
 
@@ -313,6 +377,7 @@ function render () {
 	context.restore();
 	context.font = "200px Arial";
 	if(display_text){
+
 	//	context.fillText(option_1,canvas.width / 2,-400);
 	//	context.fillText(option_2,canvas.width / 2,0);
 	}
