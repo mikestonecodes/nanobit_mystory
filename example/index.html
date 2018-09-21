@@ -2,10 +2,43 @@
 <meta name="viewport" content="width=device-width;
     initial-scale=1; maximum-scale=1; user-scalable=0;"/>
 <script src="spine-canvas.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css">
+
 <script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
+<script>
+$.fn.extend({
+  animateCss: function(animationName, callback) {
+    var animationEnd = (function(el) {
+      var animations = {
+        animation: 'animationend',
+        OAnimation: 'oAnimationEnd',
+        MozAnimation: 'mozAnimationEnd',
+        WebkitAnimation: 'webkitAnimationEnd',
+      };
+
+      for (var t in animations) {
+        if (el.style[t] !== undefined) {
+          return animations[t];
+        }
+      }
+    })(document.createElement('div'));
+
+    this.addClass('animated ' + animationName).one(animationEnd, function() {
+      $(this).removeClass('animated ' + animationName);
+
+      if (typeof callback === 'function') callback();
+    });
+
+    return this;
+  },
+});
+</script>
 <style>
 	* { margin: 0; padding: 0; }
-	body, html { height: 100% ; overflow: hidden;}
+	body, html { height: 100% ; overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+  }
+
 	canvas { position: absolute; width: 100% ;height: 100%;
     background-image: url("assets/bg_portrait.jpg");
     background-repeat: no-repeat;
@@ -34,6 +67,7 @@
       background-image: url("assets/textbox2.png");
       background-repeat: no-repeat;
        background-size: contain;
+       max-width: 450px;
        content: "";
        width:100%;
         padding-left: 15px;
@@ -52,8 +86,8 @@
 		width:80%;
     padding-left: 15px;
     padding-right: 15px;
-    top:45%;
-    left:5%;
+    top:60%;
+    left:10%;
     display: flex;
     line-height: 24px;
  align-items: center;
@@ -78,6 +112,30 @@
     bottom:80px;
     text-align: center;
 	}
+  .cta
+  {
+    width:100%;
+    height: 100%;
+    position: absolute;
+    background-image: url("assets/cta.jpg");
+    display: none;
+    background-position:  center ;
+    background-repeat: no-repeat;
+    background-size: cover;
+    z-index: 9999
+  }
+  .handCursor{
+
+  }
+  .tap {
+    text-align: center;
+    color: white;
+    font-size:30px;
+    position:absolute;
+    bottom:20px;
+    width: 100%;
+
+  }
 </style>
 <body>
 
@@ -89,16 +147,22 @@
 </div>
 <div class='optionWrapper'>
 
-<div class="option option1">
+<div class="option option1 animated infinite pulse">
 	Ask mom for advice
 </div>
-<div class="option option2">
+<div class="option option2 animated infinite pulse">
 		Call your boyfriend
 </div>
 </div>
 
 
 </div>
+<div class='cta'> </div>
+<div  class='tap'>
+  <div class='handCursor animated infinite jello'>Tap!</div>
+  <img src='assets/Hand_Cursor.svg' class='handCursor animated infinite pulse	' width='100'/>
+</div>
+
 </body>
 <script>
 
@@ -106,15 +170,17 @@ var lastFrameTime = Date.now() / 1000;
 var canvas, context;
 var assetManager;
 var skeleton, state, bounds;
+var skeleton2, state2, bounds2;
 var skeletonRenderer;
-
+var animName2="aa_yell"
 var skelName = "Ivy_2";
 var animName="1_start";
 var option_1="Ask mom for advice";
 var option_2="Call your boyfriend"
 var display_text=true;
-
+var momdraw=false;
 function init () {
+  $('.tap').hide();
 	canvas = document.getElementById("canvas");
 	canvas.width = window.innerWidth;
 	canvas.height = window.innerHeight;
@@ -132,53 +198,68 @@ function init () {
 	assetManager.loadText("assets/" + skelName.replace("-pro", "").replace("-ess", "") + ".atlas");
 	assetManager.loadTexture("assets/" + skelName.replace("-pro", "").replace("-ess", "") + ".png");
 
+  assetManager.loadText("assets/" + "Rae" + ".json");
+  assetManager.loadText("assets/" + "Rae" + ".atlas");
+  assetManager.loadTexture("assets/" + "Rae" + ".png");
+
 	requestAnimationFrame(load);
-
-
-
 
 }
 var mytim;
 function script(scripts)
 {
-    clearTimeout(mytim)
+    clearTimeout(mytim);
+
+    $('.textbox').animateCss('rubberBand');
   $('.textbox').html(scripts[0][0])
   if(scripts[0][1] == 0){
     $('.textbox').removeClass('flip')
   }else if(scripts[0][1] == 1){
+      $('.textbox').removeClass('animated')
     $('.textbox').addClass('flip')
   }
     scripts.splice(0,1);
 
     clearTimeout(mytim)
 scripts.forEach( (script,i) => {
-
-
-
     mytim = setTimeout(()=>{
+
       if(script[1] == 0){
         $('.textbox').removeClass('flip')
+          $('.textbox').animateCss('bounceIn');
       }else if(scripts[0][1] == 1) {
-        $('.textbox').addClass('flip')
+            $('.textbox').removeClass('animated')
+                  $('.textbox').addClass('flip')
+        //      $('.textbox').animateCss('flipOutY');
+
+
+
       }
+
       $('.textbox').html(script[0])
     } , 1100*(i+1))
   })
 }
-script( [ ["Oh no! It's positive!",0], ["What am I going to do?",0] ] );
+script( [ ["Oh no! It's positive!",0]] );
 function load () {
 	if (assetManager.isLoadingComplete()) {
 		var data = loadSkeleton(skelName, animName, "default");
 		skeleton = data.skeleton;
 		state = data.state;
 		bounds = data.bounds;
+
+    skeleton2 = data.skeleton2;
+		state2 = data.state2;
+		bounds2 = data.bounds2;
 		requestAnimationFrame(render);
 	} else {
 		requestAnimationFrame(load);
 	}
 }
 function cta(){
-
+    $('.tap').fadeOut();
+  $('.cta').show();
+  $('.cta').animateCss('flipInY')
 }
 function loadSkeleton (name, initialAnimation, skin) {
 	if (skin === undefined) skin = "default";
@@ -188,23 +269,53 @@ function loadSkeleton (name, initialAnimation, skin) {
 	atlas = new spine.TextureAtlas(assetManager.get("assets/" + name.replace("-pro", "").replace("-ess", "") + ".atlas"), function(path) {
 		return assetManager.get("assets/" + path);
 	});
-
-	// Create a AtlasAttachmentLoader, which is specific to the WebGL backend.
+  atlas2 = new spine.TextureAtlas(assetManager.get("assets/" +"Rae" + ".atlas"), function(path) {
+    return assetManager.get("assets/" + path);
+  });
+	 // Create a AtlasAttachmentLoader, which is specific to the WebGL backend.
 	atlasLoader = new spine.AtlasAttachmentLoader(atlas);
-
+  atlasLoader2 = new spine.AtlasAttachmentLoader(atlas2);
 	// Create a SkeletonJson instance for parsing the .json file.
 	var skeletonJson = new spine.SkeletonJson(atlasLoader);
-
+  var skeletonJson2 = new spine.SkeletonJson(atlasLoader2);
 	// Set the scale to apply during parsing, parse the file, and create a new skeleton.
 	var skeletonData = skeletonJson.readSkeletonData(assetManager.get("assets/" + name + ".json"));
-	var skeleton = new spine.Skeleton(skeletonData);
-	skeleton.flipY = true;
-	var bounds = calculateBounds(skeleton);
-	skeleton.setSkinByName(skin);
+  var skeletonData2 = skeletonJson2.readSkeletonData(assetManager.get("assets/" + "Rae" + ".json"));
 
+  var skeleton = new spine.Skeleton(skeletonData);
+  var skeleton2 = new spine.Skeleton(skeletonData2);
+	skeleton.flipY = true;
+  skeleton2.flipY = true;
+	var bounds = calculateBounds(skeleton);
+  var bounds2 = calculateBounds(skeleton2);
+	skeleton.setSkinByName(skin);
+  skeleton2.setSkinByName(skin);
 	// Create an AnimationState, and set the initial animation in looping mode.
 	var animationState = new spine.AnimationState(new spine.AnimationStateData(skeleton.data));
+  var animationState2 = new spine.AnimationState(new spine.AnimationStateData(skeleton2.data));
 	animationState.setAnimation(0, animName, true);
+
+
+  animationState2.setAnimation(0, "wait", true);
+  animationState2.addListener({
+    event: function(trackIndex, event) {
+    },
+    complete: function(trackIndex, loopCount) {
+      if(animName2=="aa_angry"){
+        animName2="aa_tell_wait"
+        animationState2.setAnimation(0, "aa_tell_wait", false);
+      }
+      if(animName2=="aa_tell_wait"){
+        animName2="aa_angry_shake"
+        animationState2.setAnimation(0, "aa_angry_shake", true);
+      }
+    },
+    start: function(trackIndex) {
+    },
+    end: function(trackIndex) {
+    }
+  });
+
 	animationState.addListener({
 		event: function(trackIndex, event) {
 
@@ -225,6 +336,7 @@ function loadSkeleton (name, initialAnimation, skin) {
 				animName="a_wait_loop"
 				animationState.setAnimation(0, "a_wait", true);
 				 display_text=true;
+         $('.option').fadeIn( "fast" );
 				 option_1="Tell her everything";
 				 option_2="Don't disappoint her"
 			}
@@ -232,12 +344,15 @@ function loadSkeleton (name, initialAnimation, skin) {
 			if(animName=="aa_tell"){
 				animName="aa_tell_loop"
 				animationState.setAnimation(0, animName, true);
+        animationState2.setAnimation(0, animName2, false);
 			}
 
 			if(animName=="b_phone_dial"){
 				animName="b_phone_loop"
 				animationState.setAnimation(0, animName, true);
 				display_text=true;
+        $('.option').fadeIn( "fast" );
+
 				option_1="Tell him he's a father";
 				option_2="Ask him if you can meet up"
 			}
@@ -254,6 +369,7 @@ function loadSkeleton (name, initialAnimation, skin) {
 
 
 		 if(animName=="aa_run_out"){
+
 			 cta();
 			}
 
@@ -272,10 +388,10 @@ function loadSkeleton (name, initialAnimation, skin) {
       if(display_text)
       {
         $('.option_1').show();
-          $('.option_2').show();
-      }else {
+        $('.option_2').show();
+      } else {
         $('.option_1').hide();
-          $('.option_2').hide();
+        $('.option_2').hide();
       }
 			// console.log("Animation on track " + trackIndex + " completed, loop count: " + loopCount);
 		},
@@ -293,8 +409,12 @@ function loadSkeleton (name, initialAnimation, skin) {
 			 if(evt.clientY/canvas.height < 0.88){
 				 animName="a_call"
 				 animationState.setAnimation(0, animName, false);
-         script( [ ["MOOOM!",0], ["Yes, dear?",1],["Mom I have to tell you something!",0],["What does my princess want?",1] ] );
-
+         script( [ ["MOOOM!",0],
+                   ["Yes, dear?",1],
+                   ["Mom I have to tell you something!",0],
+                   ["What does my princess want?",1] ] );
+                   momdraw=true;
+              animationState2.setAnimation(0, "enter", false);
 			 }else {
 				 animName="b_phone_dial"
 				 animationState.setAnimation(0, animName, false);
@@ -305,44 +425,72 @@ function loadSkeleton (name, initialAnimation, skin) {
 
      if(animName=="b_phone_loop"){
 			 	 if(evt.clientY/canvas.height < 0.88){
+           script( [ [ "WHAT?! NO, THIS ISN'T HAPPENING!",1],
+           ["MARK?! He hates me now! What am I going to do...",0] ] );
+
 					 animName="ba_hang_up"
 					 animationState.setAnimation(0, animName, false);
 		 	} else {
+        script( [ [ "I can't do this anymore, I love someone else!",1]
+
+       ] );
+
+            setTimeout(()=>{
+              script( [
+                ["WHAT?",0] ,  ["But...",0]
+              ]
+            )
+
+          },3200)
 						animName="bb_phone_cry_start"
 						animationState.setAnimation(0, animName, false);
 			}
+      $('.tap').show();
+       $('.tap').animateCss('fadeIn');
 		 }
+     console.log(animName)
 		 if(animName=="aa_tell_loop"){
-       script( [ ["What?! What were you thinking?!",0], ["Wait! Veronica! We can still fix this!",1] ] );
+       script([ ["Wait! Veronica! We can still fix this!",1] ])
+
+        $('.tap').fadeOut();
 			 animName="aa_run_out"
 			 animationState.setAnimation(0, animName, false);
 		 }
 		 if(animName=="a_wait_loop"){
 			 if(evt.clientY/canvas.height < 0.88){
 				 animName="aa_tell"
+         script( [ ["What?! What were you thinking?!",1]] );
+
 				 animationState.setAnimation(0, "aa_tell", false);
 				} else {
           script( [ ["Mom can you please get me a glass of water?",0],
-          ["Anything for you my perfect child." ,1] ] );
+          ["Anything for you my perfect child." ,1],["What am I gonna do now?",0] ] );
 
 					animName="ab_question"
+            animationState2.setAnimation(0, "ab_smile", false);
 					animationState.setAnimation(0, "a_question", true);
 			 }
+       $('.tap').show();
+        $('.tap').animateCss('fadeIn');
 		 }
 
 		 if(animName=="ab_wait"){
 			 animName="ab_sad_start"
-         script(  [["What am I gonna do now?",0]] )
+       cta();
 			 animationState.setAnimation(0, animName, false);
 		 }
 
 		 if(animName=="ba_end" || animName=="bb_phone_cry"|| animName=="ab_sad"){
 		  	cta();
 		 }
+     $('.option').fadeOut( "fast" );
+
 	}, false);
 
 	// Pack everything up and return to caller.
-	return { skeleton: skeleton, state: animationState, bounds: bounds };
+	return { skeleton: skeleton, state: animationState, bounds: bounds,
+           skeleton2: skeleton2, state2: animationState2, bounds2: bounds2
+  };
 }
 
 function calculateBounds(skeleton) {
@@ -372,8 +520,14 @@ function render () {
 
 	state.update(delta);
 	state.apply(skeleton);
+
+  state2.update(delta);
+  state2.apply(skeleton2);
 	skeleton.updateWorldTransform();
 	skeletonRenderer.draw(skeleton);
+  skeleton2.updateWorldTransform();
+  context.translate(1150, 0);
+  if(momdraw)skeletonRenderer.draw(skeleton2);
 	context.restore();
 	context.font = "200px Arial";
 	if(display_text){
