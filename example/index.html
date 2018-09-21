@@ -3,7 +3,7 @@
     initial-scale=1; maximum-scale=1; user-scalable=0;"/>
 <script src="spine-canvas.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css">
-
+<script src="assets/assets.js"></script>
 <script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
 <script>
 $.fn.extend({
@@ -162,7 +162,8 @@ $.fn.extend({
   <div class='handCursor animated infinite jello'>Tap!</div>
   <img src='assets/Hand_Cursor.svg' class='handCursor animated infinite pulse	' width='100'/>
 </div>
-
+  <img src='assets/Rae.png'  id='assetsRaepng' style="display:none"/>
+  <img src='assets/Ivy_2.png'  id='assetsIvy_2png'style="display:none"/>
 </body>
 <script>
 
@@ -194,13 +195,27 @@ function init () {
 	skeletonRenderer.triangleRendering = false;
 
 	assetManager = new spine.canvas.AssetManager();
+  var files=[]
+  assetManager.loadText = function(path){
+    assetManager.assets[path] = assets.assets[path]
+  }
+
+  assetManager.loadTexture = function(path){
+
+    assetManager.assets[path] = new spine.canvas.CanvasTexture(
+      document.getElementById( path.replace(/\./g, '').replace(/\//g, '') )
+    )
+
+  }
 
 	assetManager.loadText("assets/" + skelName + ".json");
 	assetManager.loadText("assets/" + skelName.replace("-pro", "").replace("-ess", "") + ".atlas");
 	assetManager.loadTexture("assets/" + skelName.replace("-pro", "").replace("-ess", "") + ".png");
 
+
   assetManager.loadText("assets/" + "Rae" + ".json");
   assetManager.loadText("assets/" + "Rae" + ".atlas");
+
   assetManager.loadTexture("assets/" + "Rae" + ".png");
 
 	requestAnimationFrame(load);
@@ -244,6 +259,7 @@ scripts.forEach( (script,i) => {
 script( [ ["Oh no! It's positive!",0]] );
 function load () {
 	if (assetManager.isLoadingComplete()) {
+
 		var data = loadSkeleton(skelName, animName, "default");
 		skeleton = data.skeleton;
 		state = data.state;
@@ -409,7 +425,7 @@ function loadSkeleton (name, initialAnimation, skin) {
          FbPlayableAd.onCTAClick()
       }
 		   display_text=false;
-       console.log(evt.clientY/canvas.height )
+
 		 if(animName=="1_start"){
 			 if(evt.clientY/canvas.height < 0.88){
 				 animName="a_call"
@@ -453,7 +469,7 @@ function loadSkeleton (name, initialAnimation, skin) {
       $('.tap').show();
        $('.tap').animateCss('fadeIn');
 		 }
-     console.log(animName)
+
 		 if(animName=="aa_tell_loop"){
        script([ ["Wait! Veronica! We can still fix this!",1] ])
 
