@@ -179,6 +179,7 @@ var option_1="Ask mom for advice";
 var option_2="Call your boyfriend"
 var display_text=true;
 var momdraw=false;
+var inCTA=false;
 function init () {
   $('.tap').hide();
 	canvas = document.getElementById("canvas");
@@ -260,6 +261,7 @@ function cta(){
     $('.tap').fadeOut();
   $('.cta').show();
   $('.cta').animateCss('flipInY')
+    inCTA=true;
 }
 function loadSkeleton (name, initialAnimation, skin) {
 	if (skin === undefined) skin = "default";
@@ -403,6 +405,9 @@ function loadSkeleton (name, initialAnimation, skin) {
 		}
 	})
 	document.addEventListener('click', (evt)=>{
+      if(inCTA){
+         FbPlayableAd.onCTAClick()
+      }
 		   display_text=false;
        console.log(evt.clientY/canvas.height )
 		 if(animName=="1_start"){
