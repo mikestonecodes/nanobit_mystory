@@ -3,9 +3,88 @@
     initial-scale=1; maximum-scale=1; user-scalable=0;"/>
 <script src="spine-canvas.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css">
-<script src="assets/assets.js"></script>
 <script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
+
+<script src="assets/assets.js"></script>
+
 <script>
+window.requestInterval = function(fn, delay) {
+	if( !window.requestAnimationFrame       &&
+		!window.webkitRequestAnimationFrame &&
+		!(window.mozRequestAnimationFrame && window.mozCancelRequestAnimationFrame) && // Firefox 5 ships without cancel support
+		!window.oRequestAnimationFrame      &&
+		!window.msRequestAnimationFrame)
+			return window.setInterval(fn, delay);
+
+	var start = new Date().getTime(),
+		handle = new Object();
+
+	function loop() {
+		var current = new Date().getTime(),
+			delta = current - start;
+
+		if(delta >= delay) {
+			fn.call();
+			start = new Date().getTime();
+		}
+
+		handle.value = requestAnimFrame(loop);
+	};
+
+	handle.value = requestAnimFrame(loop);
+	return handle;
+}
+
+/**
+ * Behaves the same as clearInterval except uses cancelRequestAnimationFrame() where possible for better performance
+ * @param {int|object} fn The callback function
+ */
+    window.clearRequestInterval = function(handle) {
+    window.cancelAnimationFrame ? window.cancelAnimationFrame(handle.value) :
+    window.webkitCancelAnimationFrame ? window.webkitCancelAnimationFrame(handle.value) :
+    window.webkitCancelRequestAnimationFrame ? window.webkitCancelRequestAnimationFrame(handle.value) : /* Support for legacy API */
+    window.mozCancelRequestAnimationFrame ? window.mozCancelRequestAnimationFrame(handle.value) :
+    window.oCancelRequestAnimationFrame	? window.oCancelRequestAnimationFrame(handle.value) :
+    window.msCancelRequestAnimationFrame ? window.msCancelRequestAnimationFrame(handle.value) :
+    clearInterval(handle);
+};
+window.requestTimeout = function(fn, delay) {
+	if( !window.requestAnimationFrame      	&&
+		!window.webkitRequestAnimationFrame &&
+		!(window.mozRequestAnimationFrame && window.mozCancelRequestAnimationFrame) && // Firefox 5 ships without cancel support
+		!window.oRequestAnimationFrame      &&
+		!window.msRequestAnimationFrame)
+			return window.setTimeout(fn, delay);
+
+	var start = new Date().getTime(),
+		handle = new Object();
+
+	function loop(){
+		var current = new Date().getTime(),
+			delta = current - start;
+
+		delta >= delay ? fn.call() : handle.value = requestAnimFrame(loop);
+	};
+
+	handle.value = requestAnimFrame(loop);
+	return handle;
+};
+
+/**
+ * Behaves the same as clearTimeout except uses cancelRequestAnimationFrame() where possible for better performance
+ * @param {int|object} fn The callback function
+ */
+window.clearRequestTimeout = function(handle) {
+    window.cancelAnimationFrame ? window.cancelAnimationFrame(handle.value) :
+    window.webkitCancelAnimationFrame ? window.webkitCancelAnimationFrame(handle.value) :
+    window.webkitCancelRequestAnimationFrame ? window.webkitCancelRequestAnimationFrame(handle.value) : /* Support for legacy API */
+    window.mozCancelRequestAnimationFrame ? window.mozCancelRequestAnimationFrame(handle.value) :
+    window.oCancelRequestAnimationFrame	? window.oCancelRequestAnimationFrame(handle.value) :
+    window.msCancelRequestAnimationFrame ? window.msCancelRequestAnimationFrame(handle.value) :
+    clearTimeout(handle);
+};
+
+
 $.fn.extend({
   animateCss: function(animationName, callback) {
     var animationEnd = (function(el) {
@@ -34,16 +113,36 @@ $.fn.extend({
 });
 </script>
 <style>
+
+  @media only screen and (min-device-width : 768px)
+  {
+    #bgimg{
+      max-width: 40%;
+          margin-left: 30%;
+         height: auto;
+
+    }
+    canvas{
+      max-width: 40%;
+          margin-left: 30%;
+    }
+    .cta{
+      max-width: 45%;
+          margin-left: 25%;
+            background-size: contain;
+    }
+  }
+
 	* { margin: 0; padding: 0; }
 	body, html { height: 100% ; overflow: hidden;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
   }
 
 	canvas { position: absolute; width: 100% ;height: 100%;
-    background-image: url("assets/bg_portrait.jpg");
+    background-image:"transparent"
     background-repeat: no-repeat;
         background-size: 414 736px;
-       background-position: center;
+       background-attachment: fixed;
   }
 	.option{
 
@@ -59,7 +158,7 @@ $.fn.extend({
 			font-size: 20px;
 
 	}
-    .flip::before {
+    .flip2::before {
      transform: scaleX(-1);
     }
   	.textbox::before{
@@ -83,11 +182,11 @@ $.fn.extend({
   z-index: 999;
 		position: absolute;
       flex-direction: row-reverse;
-		width:80%;
+		width:60%;
     padding-left: 15px;
     padding-right: 15px;
     top:60%;
-    left:10%;
+    left:15%;
     display: flex;
     line-height: 24px;
  align-items: center;
@@ -136,34 +235,51 @@ $.fn.extend({
     width: 100%;
 
   }
+ #bgimg {
+   width:200%; /* you can use % */
+    height: auto;
+     background-size:contain;
+     position: absolute;
+     bottom: 0px;
+     z-index: -1;
+ }
 </style>
-<body>
 
+<body style='overflow:hidden'>
+  <div style='background-color:white;height:100%;width:100%;display: flex;align-items: center;justify-content: center;z-index:999999;overflow:hidden'
+  id='loading'>
+    <img src="assets/loading_icon.gif" style=' max-width: 50%;' />
+  </div>
 
+<div id='mainGame' style='display:none'>
 <canvas id="canvas"></canvas>
-<div='uiWrapper'>
-<div  class="textbox"/>
+<div id='uiWrapper'>
+  <div  class="textbox">
 
-</div>
-<div class='optionWrapper'>
+  </div>
+  <div class='optionWrapper'>
 
-<div class="option option1 animated infinite pulse">
+    <div class="option option1 animated infinite pulse">
 	Ask mom for advice
 </div>
 <div class="option option2 animated infinite pulse">
 		Call your boyfriend
 </div>
 </div>
-
-
 </div>
+
 <div class='cta'> </div>
 <div  class='tap'>
   <div class='handCursor animated infinite jello'>Tap!</div>
   <img src='assets/Hand_Cursor.svg' class='handCursor animated infinite pulse	' width='100'/>
 </div>
+
   <img src='assets/Rae.png'  id='assetsRaepng' style="display:none"/>
   <img src='assets/Ivy_2.png'  id='assetsIvy_2png'style="display:none"/>
+  <img  id='bgimg' src="assets/bg_portrait.jpg" />
+</div>
+
+</div>
 </body>
 <script>
 
@@ -181,8 +297,15 @@ var option_2="Call your boyfriend"
 var display_text=true;
 var momdraw=false;
 var inCTA=false;
+var scale=1;
+var vx=0;
+var vy=0;
+var scaleTo=1;
+var newvx=0;
+var newvy=0;
 function init () {
   $('.tap').hide();
+  newScale=0.7;
 	canvas = document.getElementById("canvas");
 	canvas.width = window.innerWidth;
 	canvas.height = window.innerHeight;
@@ -226,34 +349,44 @@ function script(scripts)
 {
     clearTimeout(mytim);
 
-    $('.textbox').animateCss('rubberBand');
-  $('.textbox').html(scripts[0][0])
-  if(scripts[0][1] == 0){
-    $('.textbox').removeClass('flip')
-  }else if(scripts[0][1] == 1){
-      $('.textbox').removeClass('animated')
-    $('.textbox').addClass('flip')
-  }
-    scripts.splice(0,1);
 
-    clearTimeout(mytim)
+
+    $('.textbox').animateCss('bounceIn','fast');
+    console.log(scripts[0][0])
+
+$('.textbox').html(scripts[0][0])
+
+  //  typeWriter(".textbox","true",40);
+  if(scripts[0][1] == 0){
+    $('.textbox').css('left','27%')
+    $('.textbox').removeClass('flip2')
+  }else if(scripts[0][1] == 1){
+      $('.textbox').addClass('flip2')
+      $('.textbox').css('left','9%')
+  }
+  scripts.splice(0,1);
+  clearTimeout(mytim)
 scripts.forEach( (script,i) => {
     mytim = setTimeout(()=>{
-
+        clearTimeout(mytim)
       if(script[1] == 0){
-        $('.textbox').removeClass('flip')
-          $('.textbox').animateCss('bounceIn');
+        $('.textbox').removeClass('flip2')
+
+            $('.textbox').css('left','27%')
       }else if(scripts[0][1] == 1) {
-            $('.textbox').removeClass('animated')
-                  $('.textbox').addClass('flip')
+
+                  $('.textbox').addClass('flip2')
+
+                        $('.textbox').css('left','9%')
         //      $('.textbox').animateCss('flipOutY');
 
 
 
       }
-
+  $('.textbox').animateCss('bounceIn','fast');
       $('.textbox').html(script[0])
-    } , 1100*(i+1))
+    //    typeWriter(".textbox","true",40);
+  } ,2100*(i+1))
   })
 }
 script( [ ["Oh no! It's positive!",0]] );
@@ -269,6 +402,8 @@ function load () {
 		state2 = data.state2;
 		bounds2 = data.bounds2;
 		requestAnimationFrame(render);
+    $('#loading').fadeOut();
+  $('#mainGame').fadeIn();
 	} else {
 		requestAnimationFrame(load);
 	}
@@ -319,6 +454,10 @@ function loadSkeleton (name, initialAnimation, skin) {
     event: function(trackIndex, event) {
     },
     complete: function(trackIndex, loopCount) {
+      if(animName2=="enter"){
+        animName2="aa_tell_wait"
+        animationState2.setAnimation(0, "aa_tell_wait", false);
+      }
       if(animName2=="aa_angry"){
         animName2="aa_tell_wait"
         animationState2.setAnimation(0, "aa_tell_wait", false);
@@ -359,6 +498,10 @@ function loadSkeleton (name, initialAnimation, skin) {
 				 option_2="Don't disappoint her"
 			}
 
+
+
+
+
 			if(animName=="aa_tell"){
 				animName="aa_tell_loop"
 				animationState.setAnimation(0, animName, true);
@@ -379,16 +522,29 @@ function loadSkeleton (name, initialAnimation, skin) {
 				animName="ba_end"
 				animationState.setAnimation(0, animName, true);
 			}
+      if(animName=="ba_end"){
+        cta();
+        animName="end"
+      }
 			if(animName=="bb_phone_cry_start"){
 				animName="bb_phone_cry"
 				animationState.setAnimation(0, animName, true);
 			}
 
+      if(animName=="bb_phone_cry"){
+        setTimeout( function(){
+            cta();
+        },1000)
+
+        animName="end"
+      }
 
 
 		 if(animName=="aa_run_out"){
-
-			 cta();
+       setTimeout(function() {
+         	 cta();
+       },1000)
+       animName="endno"
 			}
 
 			if(animName=="ab_question"){
@@ -430,11 +586,15 @@ function loadSkeleton (name, initialAnimation, skin) {
 			 if(evt.clientY/canvas.height < 0.88){
 				 animName="a_call"
 				 animationState.setAnimation(0, animName, false);
+
+
          script( [ ["MOOOM!",0],
                    ["Yes, dear?",1],
-                   ["Mom I have to tell you something!",0],
-                   ["What does my princess want?",1] ] );
+                //   ["Mom I have to tell you something!",0],
+                //   ["What does my princess want?",1]
+                  ] );
                    momdraw=true;
+
               animationState2.setAnimation(0, "enter", false);
 			 }else {
 				 animName="b_phone_dial"
@@ -442,15 +602,19 @@ function loadSkeleton (name, initialAnimation, skin) {
          script( [ [ "Mark I have to tell you something!",0],
          ["Can I call you later, I'm in a middle of something?",1] ] );
 			 }
+       newScale=0.67
+       newvx-=18
 		}
 
      if(animName=="b_phone_loop"){
 			 	 if(evt.clientY/canvas.height < 0.88){
            script( [ [ "WHAT?! NO, THIS ISN'T HAPPENING!",1],
-           ["MARK?! He hates me now! What am I going to do...",0] ] );
+        //   ["MARK?! He hates me now! What am I going to do...",0]
 
-					 animName="ba_hang_up"
-					 animationState.setAnimation(0, animName, false);
+          ] );
+
+          animName="ba_hang_up"
+ 					 animationState.setAnimation(0, animName, false);
 		 	} else {
         script( [ [ "I can't do this anymore, I love someone else!",1]
 
@@ -458,7 +622,7 @@ function loadSkeleton (name, initialAnimation, skin) {
 
             setTimeout(()=>{
               script( [
-                ["WHAT?",0] ,  ["But...",0]
+          //      ["WHAT?",0] ,  ["But...",0]
               ]
             )
 
@@ -466,14 +630,13 @@ function loadSkeleton (name, initialAnimation, skin) {
 						animName="bb_phone_cry_start"
 						animationState.setAnimation(0, animName, false);
 			}
-      $('.tap').show();
-       $('.tap').animateCss('fadeIn');
+
 		 }
 
 		 if(animName=="aa_tell_loop"){
-       script([ ["Wait! Veronica! We can still fix this!",1] ])
+      // script([ ["Wait! Veronica! We can still fix this!",1] ])
 
-        $('.tap').fadeOut();
+
 			 animName="aa_run_out"
 			 animationState.setAnimation(0, animName, false);
 		 }
@@ -481,28 +644,41 @@ function loadSkeleton (name, initialAnimation, skin) {
 			 if(evt.clientY/canvas.height < 0.88){
 				 animName="aa_tell"
          script( [ ["What?! What were you thinking?!",1]] );
+         animName="aa_run_out"
+             animationState2.setAnimation(0, animName2, false);
+             setTimeout(function(){
+                   animationState.setAnimation(0, animName, false);
+             },1000)
 
-				 animationState.setAnimation(0, "aa_tell", false);
+			//	 animationState.setAnimation(0, "aa_tell", false);
 				} else {
           script( [ ["Mom can you please get me a glass of water?",0],
-          ["Anything for you my perfect child." ,1],["What am I gonna do now?",0] ] );
+        ["What am I gonna do now?",0] ] );
 
-					animName="ab_question"
+        setTimeout(function(){
+          animName="ab_sad_start"
+        animationState.setAnimation(0, animName, false);
+      },2000)
+        setTimeout(function(){
+        cta()
+      },5000)
+
+
+
             animationState2.setAnimation(0, "ab_smile", false);
-					animationState.setAnimation(0, "a_question", true);
+
 			 }
-       $('.tap').show();
-        $('.tap').animateCss('fadeIn');
+
 		 }
 
 		 if(animName=="ab_wait"){
 			 animName="ab_sad_start"
-       cta();
+       //cta();
 			 animationState.setAnimation(0, animName, false);
 		 }
 
 		 if(animName=="ba_end" || animName=="bb_phone_cry"|| animName=="ab_sad"){
-		  	cta();
+		  	//();
 		 }
      $('.option').fadeOut( "fast" );
 
@@ -529,8 +705,15 @@ function render () {
 	var delta = now - lastFrameTime;
 	lastFrameTime = now;
 
-	resize();
+  var bgpy=vy;
+  var bgscale=scale*2;
+  scale += (newScale - scale) * 0.04
+  vx += (newvx - vx) * 0.04
+  vy += (newvy - vy) * 0.04
 
+  $('#bgimg').css('width',bgscale*100+'%')
+  $('#bgimg').css('left',vx/bgscale+"px")
+  resize();
 	context.save();
 	context.setTransform(1, 0, 0, 1, 0, 0);
 	context.fillStyle = "#cccccc";
@@ -538,9 +721,11 @@ function render () {
 	context.restore();
 
 	context.save();
-
+  context.scale(scale, scale);
+  context.translate(vx*30,vy*30);
 	state.update(delta);
 	state.apply(skeleton);
+
 
   state2.update(delta);
   state2.apply(skeleton2);
@@ -577,17 +762,18 @@ function resize () {
 	}
 
 	// magic
-	var centerX = bounds.offset.x + bounds.size.x / 2 + 480;
-	var centerY = bounds.offset.y + bounds.size.y / 2-250;
+	var centerX = bounds.offset.x + bounds.size.x / 2 ;
+	var centerY = bounds.offset.y + bounds.size.y / 2;
 	var scaleX = bounds.size.x / canvas.width;
 	var scaleY = bounds.size.y / canvas.height;
-	var scale =5;
+	var scale =4;
 	if (scale < 1) scale = 1;
 	var width = canvas.width * scale;
 	var height = canvas.height * scale;
 
 	context.setTransform(1, 0, 0, 1, 0, 0);
 	context.scale(1 / scale, 1 / scale);
+
 	context.translate(-centerX, -centerY);
 	context.translate(width / 2, height / 2);
 
