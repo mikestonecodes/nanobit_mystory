@@ -113,7 +113,38 @@ $.fn.extend({
 </script>
 <style>
 
+@media screen and (min-device-width: 422px) {
+canvas {
+	width:542px !important;
+	     position: relative !important;
+	margin-left: auto;
+		right: 0;
+	margin-right: auto;
+	display: block;
+margin: 0 auto;
+}
+.uiWrapper{
+	width:542px !important;
+			 position: relative !important;
+	margin-left: auto;
+		right: 0;
+	margin-right: auto;
+	display: block;
+margin: 0 auto;
+}
+#bgimg {
+	     width:422px;
+			 margin-left: auto;
+			   right: 0;
+			 margin-right: auto;
+			 display: block;
+    margin: 0 auto;
+}
+.textbox{
+	margin-left: 14%;
+}
 
+}
 
 	* { margin: 0; padding: 0; }
 	body, html { height: 100% ; overflow: hidden;
@@ -148,25 +179,30 @@ $.fn.extend({
       background-image: url("assets/textbox2.png");
       background-repeat: no-repeat;
        background-size: contain;
-       max-width: 450px;
+       max-width: 460px;
+
        content: "";
        width:100%;
         padding-left: 15px;
         padding-right: 15px;
         position: absolute;
         order:2;
-        height: 228px;
+        height: 232px;
         top: -100px;
         left:-15px;
         z-index: -1;
+
     }
 	.textbox {
     order:1;
+		  min-width: 230px;
+		max-width: 400px;
   z-index: 999;
 		position: absolute;
       flex-direction: row-reverse;
 		width:60%;
     padding-left: 15px;
+		height: 47px;
     padding-right: 15px;
     top:60%;
     left:15%;
@@ -197,6 +233,7 @@ $.fn.extend({
   .cta
   {
     width:100%;
+		 top: 0;
     height: 100%;
     position: absolute;
     background-image: url("assets/cta.jpg");
@@ -216,7 +253,7 @@ $.fn.extend({
     position:absolute;
     bottom:20px;
     width: 100%;
-
+		left:30%;
   }
  #bgimg {
    width:200%; /* you can use % */
@@ -292,7 +329,7 @@ var newScale=0.7;
 var atlas=[];
 var atlas2={};
 function init() {
-	$('.tap').hide();
+	$('.tap').show();
 	newScale = 0.7;
 	canvas = document.getElementById("canvas");
 	canvas.width = window.innerWidth;
@@ -342,7 +379,7 @@ function script(scripts) {
 		$('.textbox').removeClass('flip2');
 	} else if (scripts[0][1] == 1) {
 		$('.textbox').addClass('flip2');
-		$('.textbox').css('left', '9%');
+		$('.textbox').css('left', '11%');
 	}
 	scripts.splice(0, 1);
 	clearTimeout(mytim);
@@ -350,14 +387,14 @@ function script(scripts) {
 		mytim = setTimeout(function () {
 			clearTimeout(mytim);
 			if (script[1] == 0) {
-				$('.textbox').removeClass('flip2');
+				$('.textbox').removeClass('flip2');c
 
 				$('.textbox').css('left', '27%');
 			} else if (scripts[0][1] == 1) {
 
 				$('.textbox').addClass('flip2');
 
-				$('.textbox').css('left', '9%');
+				$('.textbox').css('left', '11%');
 				//      $('.textbox').animateCss('flipOutY');
 
 			}
@@ -551,13 +588,17 @@ fixed.addEventListener('touchmove', function(e) {
 
 }, false);
  var clickf= function (evt) {
+	 if(!evt.clientY)evt.clientY=e.touches[0].evt.clientY
+	 console.log(evt,evt.clientY / canvas.height)
    if (inCTA) {
      FbPlayableAd.onCTAClick();
    }
    display_text = false;
 
    if (animName == "1_start") {
+
      if (evt.clientY / canvas.height < 0.88) {
+			  	 console.log("1",evt.clientY / canvas.height)
        animName = "a_call";
        animationState.setAnimation(0, animName, false);
 
@@ -569,6 +610,7 @@ fixed.addEventListener('touchmove', function(e) {
 
        animationState2.setAnimation(0, "enter", false);
      } else {
+			 	 console.log("2",evt.clientY / canvas.height)
        animName = "b_phone_dial";
        animationState.setAnimation(0, animName, false);
        script([["Mark I have to tell you something!", 0], ["Can I call you later, I'm in a middle of something?", 1]]);
@@ -643,6 +685,7 @@ fixed.addEventListener('touchmove', function(e) {
      //();
    }
    $('.option').fadeOut("fast");
+	 	$('.tap').fadeOut("fast");
  }
 	document.addEventListener('click',clickf, false);
   	document.addEventListener('touchend',clickf, false);
@@ -673,8 +716,16 @@ function render() {
 	vx += (newvx - vx) * 0.04;
 	vy += (newvy - vy) * 0.04;
 
-	$('#bgimg').css('width', bgscale * 100 + '%');
-	$('#bgimg').css('left', vx / bgscale + "px");
+
+	if(canvas.clientWidth > 422){
+			$('#bgimg').css('width', '542px');
+			$('#bgimg').css('left', "0");
+					scale=newScale = 0.67;
+	}else {
+
+			$('#bgimg').css('width', bgscale * 100 + '%');
+			$('#bgimg').css('left', vx / bgscale + "px");
+	}
 	resize();
 	context.save();
 	context.setTransform(1, 0, 0, 1, 0, 0);
@@ -728,6 +779,7 @@ function resize() {
 	var scaleX = bounds.size.x / canvas.width;
 	var scaleY = bounds.size.y / canvas.height;
 	var scale = 4;
+
 	if (scale < 1) scale = 1;
 	var width = canvas.width * scale;
 	var height = canvas.height * scale;
